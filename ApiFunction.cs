@@ -18,8 +18,9 @@ namespace AzureFunctionCosmosDb
             [CosmosDB(
                 databaseName: "Music-database", 
                 collectionName: "songs",
-                ConnectionStringSetting = "CosmosDbConnectionString")]IAsyncCollector<dynamic> documentsOut,
-            ILogger log)
+                ConnectionStringSetting = "CosmosDbConnectionString",
+                SqlQuery = "SELECT c.artist, c.song FROM c ORDER BY c.artist")]
+                IAsyncCollector<dynamic> documentsOut, ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
