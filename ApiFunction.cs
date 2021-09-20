@@ -35,7 +35,7 @@ namespace AzureFunctionCosmosDb
                 artist = artist ?? data?.artist;
                 title = title ?? data?.title;
 
-                if (!string.IsNullOrEmpty(artist))
+                if (!string.IsNullOrEmpty(artist) && !string.IsNullOrEmpty(title))
                 {
                     // Add a JSON document to the output container.
                     await DbSongs.AddAsync(new
@@ -47,14 +47,16 @@ namespace AzureFunctionCosmosDb
                         created = dateTime                    
                     });
                 }
-                string responseMessage = string.IsNullOrEmpty(artist)
-                    ? "This HTTP triggered function executed successfully. Pass a value in the query string or in the request body for a personalized response."
-                    : $"This HTTP triggered function executed successfully\nArtist: {artist}\nTitle: {title}";
+                // string responseMessage = $"Perfect, {artist} - {title} have now been added into the database";
+                // return new OkObjectResult(responseMessage);
+                string responseMessage = string.IsNullOrEmpty(artist) || string.IsNullOrEmpty(title)
+                    ? "You have to pass in an artist AND a song in order to post this song into the database"
+                    : $"Perfect, '{artist} - {title}' have now been added into the database";
                 return new OkObjectResult(responseMessage);
             }
             catch 
             {
-                return new BadRequestObjectResult("Invalid input values. Try again!");
+                return new BadRequestObjectResult("Invalid input values. You have add an artist AND a song value/input.");
             }
         }
     }
