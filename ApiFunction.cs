@@ -20,7 +20,7 @@ namespace AzureFunctionCosmosDb
                 collectionName: "songs",
                 ConnectionStringSetting = "CosmosDbConnectionString",
                 SqlQuery = "SELECT c.artist, c.song FROM c ORDER BY c.artist")]
-                IAsyncCollector<dynamic> documentsOut, ILogger log)
+                IAsyncCollector<dynamic> DbSongs, ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
@@ -37,7 +37,7 @@ namespace AzureFunctionCosmosDb
                 if (!string.IsNullOrEmpty(artist))
                 {
                     // Add a JSON document to the output container.
-                    await documentsOut.AddAsync(new
+                    await DbSongs.AddAsync(new
                     {
                         // create a random ID
                         id = System.Guid.NewGuid().ToString(),
