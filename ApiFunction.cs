@@ -47,8 +47,6 @@ namespace AzureFunctionCosmosDb
                         created = dateTime                    
                     });
                 }
-                // string responseMessage = $"Perfect, {artist} - {title} have now been added into the database";
-                // return new OkObjectResult(responseMessage);
                 string responseMessage = string.IsNullOrEmpty(artist) || string.IsNullOrEmpty(title)
                     ? "You have to pass in an artist AND a song in order to post this song into the database"
                     : $"Perfect, '{artist} - {title}' have now been added into the database";
