@@ -16,10 +16,10 @@ namespace AzureFunctionCosmosDb
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, 
             [CosmosDB(
-                databaseName: "Music-database", 
-                collectionName: "songs",
-                ConnectionStringSetting = "CosmosDbConnectionString")]
-                IAsyncCollector<dynamic> DbSongs, ILogger log)
+            databaseName: "Music-database", 
+            collectionName: "songs",
+            ConnectionStringSetting = "CosmosDbConnectionString")]
+            IAsyncCollector<dynamic> DbSongs, ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 

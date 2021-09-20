@@ -4,8 +4,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Azure.WebJobs.Host;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace AzureFunctionCosmosDb
@@ -15,21 +17,32 @@ namespace AzureFunctionCosmosDb
         [FunctionName("ApiFunction_GET")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
-            ILogger log)
+            [CosmosDB(
+            databaseName: "Music-database", 
+            collectionName: "songs",
+            ConnectionStringSetting = "CosmosDbConnectionString",
+            SqlQuery = "SELECT c.artist, c.title FROM c")]
+            IAsyncCollector<dynamic> DbSongs, ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            string name = req.Query["name"];
+            try 
+            {
+                string artist = req.Query["artist"];
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
+                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+                dynamic data = JsonConvert.DeserializeObject(requestBody);
+                artist = artist ?? data.artist;
 
-            string responseMessage = string.IsNullOrEmpty(name)
-                ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                : $"Hello, {name}. This HTTP triggered function executed successfully.";
-
-            return new OkObjectResult(responseMessage);
+                string responseMessage = string.IsNullOrEmpty(artist)
+                    ? "You have to pass in an artist value in order to receive information about the song."
+                    : $"Perfect, '{artist} ' have now been added into the database";
+                return new OkObjectResult(artist);
+            }
+            catch 
+            {
+                return new BadRequestObjectResult("Invalid input values. You have add an artist AND a song value/input.");
+            }
         }
     }
 }
