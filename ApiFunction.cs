@@ -16,8 +16,8 @@ namespace AzureFunctionCosmosDb
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req, 
             [CosmosDB(
-                databaseName: "my-database", 
-                collectionName: "my-container",
+                databaseName: "Music-database", 
+                collectionName: "songs",
                 ConnectionStringSetting = "CosmosDbConnectionString")]IAsyncCollector<dynamic> documentsOut,
             ILogger log)
         {
@@ -25,29 +25,29 @@ namespace AzureFunctionCosmosDb
 
             try 
             {
-                string name = req.Query["name"];
-                string description = req.Query["description"];
+                string artist = req.Query["artist"];
+                string song = req.Query["song"];
 
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
                 dynamic data = JsonConvert.DeserializeObject(requestBody);
-                name = name ?? data?.name;
-                description = description ?? data?.description;
+                artist = artist ?? data?.artist;
+                song = song ?? data?.song;
 
-                if (!string.IsNullOrEmpty(name))
+                if (!string.IsNullOrEmpty(artist))
                 {
                     // Add a JSON document to the output container.
                     await documentsOut.AddAsync(new
                     {
                         // create a random ID
                         id = System.Guid.NewGuid().ToString(),
-                        name = name,
-                        description = description,
+                        artist = artist,
+                        song = song,
                     });
                 }
 
-                string responseMessage = string.IsNullOrEmpty(name)
+                string responseMessage = string.IsNullOrEmpty(artist)
                     ? "This HTTP triggered function executed successfully. Pass a value in the query string or in the request body for a personalized response."
-                    : $"This HTTP triggered function executed successfully\nName: {name}\nDescription: {description}";
+                    : $"This HTTP triggered function executed successfully\nArtist: {artist}\nSong: {song}";
 
                 return new OkObjectResult(responseMessage);
             }
