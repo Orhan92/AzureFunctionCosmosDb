@@ -14,25 +14,26 @@ namespace AzureFunctionCosmosDb
     {
         [FunctionName("ApiFunction")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req, 
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, 
             [CosmosDB(
                 databaseName: "Music-database", 
                 collectionName: "songs",
-                ConnectionStringSetting = "CosmosDbConnectionString",
-                SqlQuery = "SELECT c.artist, c.song FROM c ORDER BY c.artist")]
+                ConnectionStringSetting = "CosmosDbConnectionString")]
                 IAsyncCollector<dynamic> DbSongs, ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
             try 
             {
+                //Fill with more desired variables below if you want to expand with more properties for a song
                 string artist = req.Query["artist"];
-                string song = req.Query["song"];
+                string title = req.Query["title"];
+                DateTime dateTime = DateTime.UtcNow;
 
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
                 dynamic data = JsonConvert.DeserializeObject(requestBody);
                 artist = artist ?? data?.artist;
-                song = song ?? data?.song;
+                title = title ?? data?.title;
 
                 if (!string.IsNullOrEmpty(artist))
                 {
@@ -42,14 +43,13 @@ namespace AzureFunctionCosmosDb
                         // create a random ID
                         id = System.Guid.NewGuid().ToString(),
                         artist = artist,
-                        song = song,
+                        title = title,
+                        created = dateTime                    
                     });
                 }
-
                 string responseMessage = string.IsNullOrEmpty(artist)
                     ? "This HTTP triggered function executed successfully. Pass a value in the query string or in the request body for a personalized response."
-                    : $"This HTTP triggered function executed successfully\nArtist: {artist}\nSong: {song}";
-
+                    : $"This HTTP triggered function executed successfully\nArtist: {artist}\nTitle: {title}";
                 return new OkObjectResult(responseMessage);
             }
             catch 
