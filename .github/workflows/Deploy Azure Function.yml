@@ -1,78 +1,39 @@
-# name: Deploy DotNet project to Azure Function App
-
-# on:
-#   push:
-#     branches:
-#       - master
-#       - main
-# env:
-#   AZURE_FUNCTIONAPP_NAME: ApiFunctionOrhan  # set this to your application's name
-#   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'    # set this to the path to your web app project, defaults to the repository root
-#   DOTNET_VERSION: '3.1'              # set this to the dotnet version to use
-
-# jobs:
-#   build-and-deploy-azure-functions:
-#     runs-on: windows-latest
-#     environment: dev
-#     steps:
-#     - name: 'Checkout GitHub Action'
-#       uses: actions/checkout@master
-
-#     - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
-#       uses: actions/setup-dotnet@v1
-#       with:
-#         dotnet-version: ${{ env.DOTNET_VERSION }}
-
-#     - name: 'Login via Azure CLI'
-#       uses: azure/login@v1
-#       with:
-#         creds: ${{ secrets.AZURE_RBAC_CREDENTIALS }} #Configured in repo SECRETS
-
-#     - name: 'Resolve Project Dependencies Using Dotnet'
-#       shell: pwsh
-#       run: |
-#         pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-#         dotnet build --configuration Release --output ./output
-#         popd
-
-#     - name: 'Run Azure Functions Action'
-#       uses: Azure/functions-action@v1
-#       id: fa
-#       with:
-#         app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-#         package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
-#         publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }} #Configured in repo SECRETS
-
-name: Deploy to Azure
+name: Deploy DotNet project to Azure Function App
 
 on:
-  workflow_dispatch:
-
+  push:
+    branches:
+      - master
+      - main
 env:
-  AZURE_FUNCTIONAPP_NAME: ApiFunctionOrhan
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: "."
-  ROOT_SOLUTION_PATH: "."
+  AZURE_FUNCTIONAPP_NAME: ApiFunctionOrhan # set this to your application's name
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: "." # set this to the path to your web app project, defaults to the repository root
+  DOTNET_VERSION: "3.1" # set this to the dotnet version to use
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
+  build-and-deploy-azure-functions:
+    runs-on: windows-latest
+    environment: dev
     steps:
-      - name: Get the latest source code commit
-        uses: actions/checkout@v2
+      - name: "Checkout GitHub Action"
+        uses: actions/checkout@master
 
-      - name: Setup .NET
+      - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Restore dependencies
-        run: dotnet restore
-        working-directory: ${{ env.ROOT_SOLUTION_PATH }}
+      - name: "Login via Azure CLI"
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_RBAC_CREDENTIALS }} #Configured in repo SECRETS
 
-      - name: Build Function App for Release
-        run: dotnet build --configuration Release --output ./output
-        working-directory: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+      - name: "Resolve Project Dependencies Using Dotnet"
+        shell: pwsh
+        run: |
+          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          dotnet build --configuration Release --output ./output
+          popd
 
       - name: "Run Azure Functions Action"
         uses: Azure/functions-action@v1
@@ -80,4 +41,43 @@ jobs:
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           package: "${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output"
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }} #Configured in repo SECRETS
+
+# name: Deploy to Azure
+
+# on:
+#   workflow_dispatch:
+
+# env:
+#   AZURE_FUNCTIONAPP_NAME: ApiFunctionOrhan
+#   AZURE_FUNCTIONAPP_PACKAGE_PATH: "."
+#   ROOT_SOLUTION_PATH: "."
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Get the latest source code commit
+#         uses: actions/checkout@v2
+
+#       - name: Setup .NET
+#         uses: actions/setup-dotnet@v1
+#         with:
+#           dotnet-version: ${{ env.DOTNET_VERSION }}
+
+#       - name: Restore dependencies
+#         run: dotnet restore
+#         working-directory: ${{ env.ROOT_SOLUTION_PATH }}
+
+#       - name: Build Function App for Release
+#         run: dotnet build --configuration Release --output ./output
+#         working-directory: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+
+#       - name: "Run Azure Functions Action"
+#         uses: Azure/functions-action@v1
+#         id: fa
+#         with:
+#           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+#           package: "${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output"
+#           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
