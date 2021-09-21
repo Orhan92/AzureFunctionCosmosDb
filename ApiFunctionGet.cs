@@ -18,9 +18,9 @@ using Microsoft.Azure.Documents.Linq;
 
 namespace AzureFunctionCosmosDb
 {
-    public static class ApiFunction_GET
+    public static class ApiFunctionGet
     {
-        [FunctionName("ApiFunction_GET")]
+        [FunctionName("ApiFunctionGet")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
             [CosmosDB(

@@ -10,9 +10,9 @@ using Newtonsoft.Json;
 
 namespace AzureFunctionCosmosDb
 {
-    public static class ApiFunction
+    public static class ApiFunctionPost
     {
-        [FunctionName("ApiFunction")]
+        [FunctionName("ApiFunctionPost")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, 
             [CosmosDB(
