@@ -16,10 +16,10 @@ namespace AzureFunctionCosmosDb
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, 
             [CosmosDB(
-                databaseName: "Music-database", 
-                collectionName: "songs",
-                ConnectionStringSetting = "CosmosDbConnectionString")]
-                IAsyncCollector<dynamic> DbSongs, ILogger log)
+            databaseName: "Music-database", 
+            collectionName: "songs",
+            ConnectionStringSetting = "CosmosDbConnectionString")]
+            IAsyncCollector<dynamic> DbSongs, ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
@@ -28,33 +28,33 @@ namespace AzureFunctionCosmosDb
                 //Fill with more desired variables below if you want to expand with more properties for a song
                 string artist = req.Query["artist"];
                 string title = req.Query["title"];
-                DateTime dateTime = DateTime.UtcNow;
 
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-                dynamic data = JsonConvert.DeserializeObject(requestBody);
+                dynamic data = JsonConvert.DeserializeObject<SongModel>(requestBody);
                 artist = artist ?? data?.artist;
                 title = title ?? data?.title;
 
                 if (!string.IsNullOrEmpty(artist) && !string.IsNullOrEmpty(title))
                 {
-                    // Add a JSON document to the output container.
-                    await DbSongs.AddAsync(new
+                var newSong = new SongModel
                     {
-                        // create a random ID
-                        id = System.Guid.NewGuid().ToString(),
-                        artist = artist,
-                        title = title,
-                        created = dateTime                    
-                    });
+                        //Generate random ID
+                        Id = System.Guid.NewGuid().ToString(),
+                        Artist = artist,
+                        Title = title,
+                        Created = DateTime.Now
+                    };
+
+                await DbSongs.AddAsync(newSong);
+                return new OkObjectResult(newSong);
                 }
-                string responseMessage = string.IsNullOrEmpty(artist) || string.IsNullOrEmpty(title)
-                    ? "You have to pass in an artist AND a song in order to post this song into the database"
-                    : $"Perfect, '{artist} - {title}' have now been added into the database";
-                return new OkObjectResult(responseMessage);
+                log.LogError($"You have to fill in artist and title in order to insert into the databse");
+                return new BadRequestObjectResult("Invalid input values. You have to add an artist AND a song value/input.");
             }
-            catch 
+            catch (Exception ex)
             {
-                return new BadRequestObjectResult("Invalid input values. You have add an artist AND a song value/input.");
+                log.LogError($"Your item was not successfully inserted into the database. Exception thrown: {ex.Message}");
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
         }
     }
