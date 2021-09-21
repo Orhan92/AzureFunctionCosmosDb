@@ -1,5 +1,4 @@
-name: Deploy DotNet project to Azure Function App
-
+name: Deploy to Azure
 on:
   push:
     branches:
