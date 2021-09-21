@@ -9,6 +9,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using System.Linq;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Documents.Client;
+using System.ComponentModel;
+using Microsoft.Azure.Documents.Linq;
+
 
 namespace AzureFunctionCosmosDb
 {
@@ -20,28 +26,43 @@ namespace AzureFunctionCosmosDb
             [CosmosDB(
             databaseName: "Music-database", 
             collectionName: "songs",
-            ConnectionStringSetting = "CosmosDbConnectionString",
-            SqlQuery = "SELECT c.artist, c.title FROM c")]
-            IAsyncCollector<dynamic> DbSongs, ILogger log)
+            ConnectionStringSetting = "CosmosDbConnectionString")] DocumentClient client,
+            ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
             try 
             {
-                string artist = req.Query["artist"];
+                var searchterm = req.Query["searchterm"];
+                if (string.IsNullOrWhiteSpace(searchterm))
+                {
+                    return (ActionResult)new NotFoundResult();
+                }
 
-                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-                dynamic data = JsonConvert.DeserializeObject(requestBody);
-                artist = artist ?? data.artist;
+                Uri collectionUri = UriFactory.CreateDocumentCollectionUri("Music-database", "songs");
 
-                string responseMessage = string.IsNullOrEmpty(artist)
-                    ? "You have to pass in an artist value in order to receive information about the song."
-                    : $"Perfect, '{artist} ' have now been added into the database";
-                return new OkObjectResult(artist);
+                log.LogInformation($"Searching for: {searchterm}");
+
+                IDocumentQuery<SongModel> query = client.CreateDocumentQuery<SongModel>(collectionUri, new FeedOptions { EnableCrossPartitionQuery = true})
+                    .Where(p => p.Artist.Contains(searchterm))
+                    .AsDocumentQuery();
+                
+                //list to store objects inside a temporary list so that we can print the object in OkObjectResult below.
+                var list = new List<SongModel>();
+                while (query.HasMoreResults)
+                {
+                    foreach (SongModel result in await query.ExecuteNextAsync())
+                    {
+                        list.Add(result);
+                        log.LogInformation($"{result.Artist} - {result.Title}");
+                    }
+                }
+                return new OkObjectResult(list);
             }
-            catch 
+            catch (Exception ex)
             {
-                return new BadRequestObjectResult("Invalid input values. You have add an artist AND a song value/input.");
+                log.LogError($"We could not GET your requested data from the database. Exception thrown: {ex.Message}");
+                return new StatusCodeResult(StatusCodes.Status400BadRequest);
             }
         }
     }
